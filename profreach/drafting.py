@@ -1,12 +1,29 @@
 import json
+import logging
 import anthropic
 from .config import ANTHROPIC_API_KEY, MODEL
 from .models import ExperienceBlock, ExtractedProfessor, EmailDraft
 from .prompts import DRAFTING_SYSTEM, DRAFTING_USER
 
+logger = logging.getLogger(__name__)
+
+WORD_COUNT_MIN = 90
+WORD_COUNT_MAX = 110
+
 
 def _count_words(text: str) -> int:
     return len(text.split())
+
+
+def _parse_draft(raw: str) -> tuple[str, str]:
+    """Strip optional markdown fences and parse JSON. Returns (subject, body)."""
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    data = json.loads(raw)
+    return data.get("subject", "research interest"), data.get("body", "")
 
 
 def draft_email(
@@ -16,7 +33,11 @@ def draft_email(
     student_name: str,
     student_context: str,
 ) -> EmailDraft:
-    """Generate a 100-word cold email draft for a professor."""
+    """Generate a 100-word cold email draft for a professor.
+
+    Makes one retry if the first draft's word count falls outside 90-110.
+    If the retry also misses, accepts it and logs a warning.
+    """
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     anchor_research = (
@@ -47,18 +68,37 @@ def draft_email(
         messages=[{"role": "user", "content": user_content}],
     )
 
-    raw = message.content[0].text.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+    subject, body = _parse_draft(message.content[0].text)
+    wc = _count_words(body)
 
-    data = json.loads(raw)
-    subject = data.get("subject", "research interest")
-    body = data.get("body", "")
+    if not (WORD_COUNT_MIN <= wc <= WORD_COUNT_MAX):
+        logger.warning(
+            "First email draft for %s was %d words (target 90-110). Retrying.",
+            professor.name,
+            wc,
+        )
+        retry_user = (
+            user_content
+            + f"\n\nThe previous draft was {wc} words. "
+            "Return exactly 90-110 words in the body. Count carefully before responding."
+        )
+        retry_message = client.messages.create(
+            model=MODEL,
+            max_tokens=512,
+            system=system_with_voice,
+            messages=[{"role": "user", "content": retry_user}],
+        )
+        subject, body = _parse_draft(retry_message.content[0].text)
+        wc = _count_words(body)
+        if not (WORD_COUNT_MIN <= wc <= WORD_COUNT_MAX):
+            logger.warning(
+                "Retry draft for %s still %d words; accepting anyway.",
+                professor.name,
+                wc,
+            )
 
     return EmailDraft(
         subject=subject,
         body=body,
-        word_count=_count_words(body),
+        word_count=wc,
     )
