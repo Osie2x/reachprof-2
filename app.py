@@ -107,11 +107,7 @@ def run_pipeline(
     student = _load_student()
     blocks = _load_library()
     voice = _load_voice()
-    student_context = (
-        student.__dict__.get("context", "") if student else "First-year university student"
-    )
-
-    # load student context field from yaml directly for prompt
+    # load student context field from yaml for the drafting prompt
     student_yaml_context = ""
     if STUDENT_YAML_PATH.exists():
         with open(STUDENT_YAML_PATH) as f:
