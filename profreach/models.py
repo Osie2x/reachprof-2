@@ -66,3 +66,13 @@ class Run(BaseModel):
     professor_count: int
     success_count: int
     failure_count: int
+
+
+class StudentInfo(BaseModel):
+    """Student contact information for resume rendering."""
+    name: str
+    email: str
+    phone: str
+    location: str
+    github: str = ""
+    linkedin: str = ""

@@ -2,27 +2,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 from .config import TEMPLATES_DIR
-from .models import ExperienceBlock
-
-
-class StudentInfo:
-    """Simple container for student contact data."""
-
-    def __init__(
-        self,
-        name: str,
-        email: str,
-        phone: str,
-        location: str,
-        github: str = "",
-        linkedin: str = "",
-    ):
-        self.name = name
-        self.email = email
-        self.phone = phone
-        self.location = location
-        self.github = github
-        self.linkedin = linkedin
+from .models import ExperienceBlock, StudentInfo
 
 
 def render_resume(

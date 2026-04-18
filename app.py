@@ -36,8 +36,8 @@ from profreach.drafting import draft_email
 from profreach.extraction import extract_professor
 from profreach.library import load_voice_samples, parse_library
 from profreach.matching import match_blocks
-from profreach.models import ProfessorInput, ProfessorRecord, Run
-from profreach.resume import StudentInfo, render_resume
+from profreach.models import ProfessorInput, ProfessorRecord, Run, StudentInfo
+from profreach.resume import render_resume
 from profreach.scraping import fetch_page, html_to_clean_text, load_fixture
 from profreach.validation import validate_extraction
 
