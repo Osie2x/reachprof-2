@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: Letter;
+      margin: 0.6in;
+    }
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      color: #1a1a1a;
+      line-height: 1.35;
+    }
+    h1 {
+      font-size: 18pt;
+      margin: 0 0 2pt 0;
+    }
+    .contact {
+      font-size: 9.5pt;
+      color: #555;
+      margin-bottom: 10pt;
+    }
+    h2 {
+      font-size: 11pt;
+      text-transform: uppercase;
+      letter-spacing: 0.8pt;
+      border-bottom: 1pt solid #333;
+      padding-bottom: 2pt;
+      margin: 12pt 0 6pt 0;
+    }
+    .block {
+      margin-bottom: 8pt;
+    }
+    .block-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+    }
+    .block-sub {
+      font-style: italic;
+      color: #555;
+      margin-bottom: 2pt;
+    }
+    ul {
+      margin: 2pt 0 0 16pt;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 1.5pt;
+    }
+  </style>
+</head>
+<body>
+  <h1>{{ student.name }}</h1>
+  <div class="contact">
+    {{ student.email }} · {{ student.phone }} · {{ student.location }}
+    {% if student.github %} · {{ student.github }}{% endif %}
+    {% if student.linkedin %} · {{ student.linkedin }}{% endif %}
+  </div>
+
+  <h2>Experience</h2>
+
+  {% for block in ordered_blocks %}
+  <div class="block">
+    <div class="block-header">
+      <span>{{ block.title }}{% if block.organization %}, {{ block.organization }}{% endif %}</span>
+      <span>{{ block.dates }}</span>
+    </div>
+    <ul>
+      {% for bullet in block.bullets %}<li>{{ bullet }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+
+</body>
+</html>
