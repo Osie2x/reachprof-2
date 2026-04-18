@@ -188,19 +188,21 @@ def run_pipeline(
             resume_path = run_dir / "resume.pdf"
             email_path = run_dir / "email.txt"
 
-            log("  Rendering resume PDF...")
             ordered_blocks = match.top_blocks + [
                 b for b in blocks if b not in match.top_blocks
             ]
+
             if student:
+                log("  Rendering resume PDF...")
                 render_resume(
                     student=student,
                     ordered_blocks=ordered_blocks,
                     output_path=resume_path,
                 )
+                resume_pdf_path_str = str(resume_path)
             else:
-                # no student.yaml -- write a placeholder
-                resume_path.write_text("student.yaml not found. Fill in student.yaml and re-run.")
+                log("  Skipping PDF render -- student.yaml not found.")
+                resume_pdf_path_str = ""
 
             # --- write email ---
             email_path.write_text(
@@ -216,7 +218,7 @@ def run_pipeline(
                 professor=prof,
                 match=match,
                 email=email_draft,
-                resume_pdf_path=str(resume_path),
+                resume_pdf_path=resume_pdf_path_str,
                 email_txt_path=str(email_path),
                 created_at=datetime.now(),
             )
@@ -479,18 +481,21 @@ def page_review():
                 st.code(email_body, language=None)
                 st.caption(f"{rec.email.word_count} words (original draft)")
 
-                resume_path = Path(rec.resume_pdf_path)
-                if resume_path.exists() and resume_path.suffix == ".pdf":
-                    with open(resume_path, "rb") as pdf_f:
-                        st.download_button(
-                            label="Download Resume PDF",
-                            data=pdf_f.read(),
-                            file_name=f"resume_{rec.prof_slug}.pdf",
-                            mime="application/pdf",
-                            key=f"dl_{rec.prof_slug}",
-                        )
+                if rec.resume_pdf_path:
+                    resume_path = Path(rec.resume_pdf_path)
+                    if resume_path.exists():
+                        with open(resume_path, "rb") as pdf_f:
+                            st.download_button(
+                                label="Download Resume PDF",
+                                data=pdf_f.read(),
+                                file_name=f"resume_{rec.prof_slug}.pdf",
+                                mime="application/pdf",
+                                key=f"dl_{rec.prof_slug}",
+                            )
+                    else:
+                        st.warning("Resume PDF file missing from disk.")
                 else:
-                    st.warning("Resume PDF not found. student.yaml may be missing.")
+                    st.warning("PDF not available -- add student.yaml and re-run.")
 
 
 # ---------------------------------------------------------------------------
