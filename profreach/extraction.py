@@ -1,18 +1,32 @@
 import json
+import logging
 import anthropic
 from .config import ANTHROPIC_API_KEY, MODEL
 from .models import ExtractedProfessor
 from .prompts import EXTRACTION_SYSTEM, EXTRACTION_USER
+
+logger = logging.getLogger(__name__)
+
+PAGE_TEXT_LIMIT = 20000
 
 
 def extract_professor(page_text: str, page_url: str, user_note: str = "") -> ExtractedProfessor:
     """Call the LLM to extract structured professor metadata from page text."""
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
+    if len(page_text) > PAGE_TEXT_LIMIT:
+        logger.warning(
+            "Page text for %s is %d chars; truncating to %d. "
+            "Research Interests section may be cut. Consider reviewing the output.",
+            page_url,
+            len(page_text),
+            PAGE_TEXT_LIMIT,
+        )
+
     user_content = EXTRACTION_USER.format(
         page_url=page_url,
         user_note=user_note or "(none)",
-        page_text=page_text[:8000],  # guard against very long pages
+        page_text=page_text[:PAGE_TEXT_LIMIT],
     )
 
     message = client.messages.create(
