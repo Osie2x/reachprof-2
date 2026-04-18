@@ -2,7 +2,7 @@ import sqlite3
 import json
 from datetime import datetime
 from .config import DB_PATH
-from .models import Run, ProfessorRecord
+from .models import Run, ProfessorRecord, ExtractedProfessor, MatchResult, EmailDraft
 
 
 def get_connection() -> sqlite3.Connection:
@@ -100,8 +100,6 @@ def list_runs() -> list[Run]:
 
 
 def get_professor_records_for_run(run_id: str) -> list[ProfessorRecord]:
-    from .models import ExtractedProfessor, MatchResult, EmailDraft
-
     with get_connection() as conn:
         rows = conn.execute(
             "SELECT * FROM professor_records WHERE run_id = ? ORDER BY id",
