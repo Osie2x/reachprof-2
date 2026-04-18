@@ -34,7 +34,7 @@ def match_blocks(
         library_blocks_json=library_json,
     )
 
-    message = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY).messages.create(
+    message = client.messages.create(
         model=MODEL,
         max_tokens=512,
         system=MATCHING_SYSTEM,
