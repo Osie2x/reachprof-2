@@ -36,7 +36,9 @@ def draft_email(
         top_experience=top_experience,
     )
 
-    system_with_voice = DRAFTING_SYSTEM.format(voice_samples=voice_samples_text)
+    # Use replace instead of .format() because the prompt contains JSON schema
+    # curly braces that would confuse Python's str.format().
+    system_with_voice = DRAFTING_SYSTEM.replace("{voice_samples}", voice_samples_text)
 
     message = client.messages.create(
         model=MODEL,
