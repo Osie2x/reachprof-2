@@ -1,3 +1,4 @@
+from typing import Union
 from pathlib import Path
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -10,7 +11,7 @@ from .models import ExperienceBlock, StudentInfo
 def render_resume(
     student: StudentInfo,
     ordered_blocks: list[ExperienceBlock],
-    output_path: str | Path,
+    output_path: Union[str, Path],
 ) -> Path:
     """Render a one-page PDF resume using reportlab (pure Python, no system deps)."""
     output_path = Path(output_path)

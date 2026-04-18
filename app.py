@@ -1,3 +1,4 @@
+from __future__ import annotations
 """profreach Streamlit application.
 
 Three sidebar pages:
@@ -58,7 +59,7 @@ def _slugify(text: str) -> str:
     return text[:40]
 
 
-def _load_student() -> StudentInfo | None:
+def _load_student() -> Optional[StudentInfo]:
     if not STUDENT_YAML_PATH.exists():
         return None
     with open(STUDENT_YAML_PATH) as f:
@@ -313,7 +314,7 @@ def page_scrape():
     )
 
     professors: list[ProfessorInput] = []
-    csv_filename: str | None = None
+    csv_filename: Optional[str] = None
 
     if input_mode == "Upload CSV":
         uploaded = st.file_uploader(

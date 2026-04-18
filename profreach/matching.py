@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 from groq import Groq
 from .config import GROQ_API_KEY, MODEL
