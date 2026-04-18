@@ -1,6 +1,6 @@
 import json
-import anthropic
-from .config import ANTHROPIC_API_KEY, MODEL
+from groq import Groq
+from .config import GROQ_API_KEY, MODEL
 from .models import ExtractedProfessor, ExperienceBlock, MatchResult
 from .prompts import MATCHING_SYSTEM, MATCHING_USER
 
@@ -10,7 +10,7 @@ def match_blocks(
     blocks: list[ExperienceBlock],
 ) -> MatchResult:
     """Rank experience blocks by relevance to this professor's research."""
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Groq(api_key=GROQ_API_KEY)
 
     library_json = json.dumps(
         [
@@ -34,14 +34,16 @@ def match_blocks(
         library_blocks_json=library_json,
     )
 
-    message = client.messages.create(
+    message = client.chat.completions.create(
         model=MODEL,
         max_tokens=512,
-        system=MATCHING_SYSTEM,
-        messages=[{"role": "user", "content": user_content}],
+        messages=[
+            {"role": "system", "content": MATCHING_SYSTEM},
+            {"role": "user", "content": user_content},
+        ],
     )
 
-    raw = message.content[0].text.strip()
+    raw = message.choices[0].message.content.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):

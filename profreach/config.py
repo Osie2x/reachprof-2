@@ -1,4 +1,5 @@
 import os
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -15,6 +16,7 @@ STUDENT_YAML_PATH = BASE_DIR / "student.yaml"
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-MODEL = "claude-sonnet-4-6"
+MODEL = "llama-3.3-70b-versatile"
 
 RUNS_DIR.mkdir(parents=True, exist_ok=True)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")

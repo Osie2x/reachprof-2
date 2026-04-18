@@ -1,7 +1,7 @@
 import json
 import logging
-import anthropic
-from .config import ANTHROPIC_API_KEY, MODEL
+from groq import Groq
+from .config import GROQ_API_KEY, MODEL
 from .models import ExperienceBlock, ExtractedProfessor, EmailDraft
 from .prompts import DRAFTING_SYSTEM, DRAFTING_USER
 
@@ -38,7 +38,7 @@ def draft_email(
     Makes one retry if the first draft's word count falls outside 90-110.
     If the retry also misses, accepts it and logs a warning.
     """
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Groq(api_key=GROQ_API_KEY)
 
     anchor_research = (
         professor.research_areas[0] if professor.research_areas else "your research"
@@ -61,14 +61,16 @@ def draft_email(
     # curly braces that would confuse Python's str.format().
     system_with_voice = DRAFTING_SYSTEM.replace("{voice_samples}", voice_samples_text)
 
-    message = client.messages.create(
+    message = client.chat.completions.create(
         model=MODEL,
         max_tokens=512,
-        system=system_with_voice,
-        messages=[{"role": "user", "content": user_content}],
+        messages=[
+            {"role": "system", "content": system_with_voice},
+            {"role": "user", "content": user_content},
+        ],
     )
 
-    subject, body = _parse_draft(message.content[0].text)
+    subject, body = _parse_draft(message.choices[0].message.content)
     wc = _count_words(body)
 
     if not (WORD_COUNT_MIN <= wc <= WORD_COUNT_MAX):
@@ -82,13 +84,15 @@ def draft_email(
             + f"\n\nThe previous draft was {wc} words. "
             "Return exactly 90-110 words in the body. Count carefully before responding."
         )
-        retry_message = client.messages.create(
+        retry_message = client.chat.completions.create(
             model=MODEL,
             max_tokens=512,
-            system=system_with_voice,
-            messages=[{"role": "user", "content": retry_user}],
+            messages=[
+                {"role": "system", "content": system_with_voice},
+                {"role": "user", "content": retry_user},
+            ],
         )
-        subject, body = _parse_draft(retry_message.content[0].text)
+        subject, body = _parse_draft(retry_message.choices[0].message.content)
         wc = _count_words(body)
         if not (WORD_COUNT_MIN <= wc <= WORD_COUNT_MAX):
             logger.warning(

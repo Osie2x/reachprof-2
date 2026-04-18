@@ -1,7 +1,7 @@
 import json
 import logging
-import anthropic
-from .config import ANTHROPIC_API_KEY, MODEL
+from groq import Groq
+from .config import GROQ_API_KEY, MODEL
 from .models import ExtractedProfessor
 from .prompts import EXTRACTION_SYSTEM, EXTRACTION_USER
 
@@ -12,7 +12,7 @@ PAGE_TEXT_LIMIT = 20000
 
 def extract_professor(page_text: str, page_url: str, user_note: str = "") -> ExtractedProfessor:
     """Call the LLM to extract structured professor metadata from page text."""
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Groq(api_key=GROQ_API_KEY)
 
     if len(page_text) > PAGE_TEXT_LIMIT:
         logger.warning(
@@ -29,14 +29,16 @@ def extract_professor(page_text: str, page_url: str, user_note: str = "") -> Ext
         page_text=page_text[:PAGE_TEXT_LIMIT],
     )
 
-    message = client.messages.create(
+    message = client.chat.completions.create(
         model=MODEL,
         max_tokens=1024,
-        system=EXTRACTION_SYSTEM,
-        messages=[{"role": "user", "content": user_content}],
+        messages=[
+            {"role": "system", "content": EXTRACTION_SYSTEM},
+            {"role": "user", "content": user_content},
+        ],
     )
 
-    raw = message.content[0].text.strip()
+    raw = message.choices[0].message.content.strip()
 
     # strip any accidental markdown fences
     if raw.startswith("```"):
